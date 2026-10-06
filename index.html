@@ -5,80 +5,140 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>QRIB | قريب</title>
 <style>
-  body{margin:0;font-family:Arial,sans-serif;background:#f5f7fa;color:#1a1a1a;text-align:center}
-  header{background:#0f9d58;color:#fff;padding:32px 16px}
-  h1{margin:0;font-size:34px}
-  p{margin:8px 0 0;font-size:17px}
-  .card{margin:20px auto;padding:20px;background:#fff;border-radius:14px;max-width:360px}
-  input{width:100%;box-sizing:border-box;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:8px;font-size:16px;direction:ltr}
-  button{width:100%;padding:12px;margin:6px 0;border:0;border-radius:8px;font-size:16px;cursor:pointer}
-  .main{background:#0f9d58;color:#fff}
-  .sec{background:#e8eaed;color:#1a1a1a}
-  #msg{margin-top:10px;font-size:15px;color:#c0392b;word-break:break-word}
+:root{--blue:#1257d6;--green:#16a34a;--bg:#f4f6fa;--txt:#1a1f2b;--mut:#6b7280}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--txt);padding-bottom:80px}
+header{background:linear-gradient(160deg,#0b3fa8,#1257d6);color:#fff;padding:22px 16px 60px;text-align:center}
+header h1{margin:0;font-size:30px}
+header p{margin:6px 0 0;font-size:15px;opacity:.95}
+.search{margin:-30px 14px 0;background:#fff;border-radius:14px;padding:6px 12px;box-shadow:0 4px 14px #0002;display:flex}
+.search input{flex:1;border:0;outline:0;padding:12px 4px;font-size:16px;background:transparent}
+.search button{border:0;background:var(--blue);color:#fff;border-radius:10px;padding:0 14px;font-size:16px}
+.actions{display:flex;gap:10px;margin:14px}
+.actions button{flex:1;border:0;border-radius:14px;padding:14px 6px;font-size:15px;color:#fff;font-weight:bold}
+.a1{background:var(--blue)}.a2{background:var(--green)}.a3{background:#fff;color:var(--blue)!important;border:1px solid #dbe3f3!important}
+h2{font-size:17px;margin:18px 14px 8px}
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 14px}
+.cat{background:#fff;border-radius:14px;padding:12px 4px;text-align:center;font-size:13px;box-shadow:0 2px 8px #0001;cursor:pointer;border:2px solid transparent}
+.cat.on{border-color:var(--blue)}
+.cat span{display:block;font-size:26px;margin-bottom:4px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 14px}
+.item{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px #0001}
+.item .img{height:110px;background:#e5e9f2;display:flex;align-items:center;justify-content:center;font-size:36px}
+.item .b{padding:8px 10px}
+.item .t{font-size:14px}
+.item .p{color:var(--blue);font-weight:bold;margin-top:2px}
+.item .c{color:var(--mut);font-size:12px;margin-top:2px}
+.empty{grid-column:1/-1;text-align:center;color:var(--mut);padding:30px 10px;background:#fff;border-radius:14px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #e5e7eb;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;padding:10px 0;font-size:12px;color:var(--mut)}
+nav button span{display:block;font-size:22px}
+nav button.on{color:var(--blue);font-weight:bold}
+.page{display:none}.page.on{display:block}
+.card{margin:18px auto;padding:20px;background:#fff;border-radius:14px;max-width:360px;text-align:center}
+.card input{width:100%;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:8px;font-size:16px;direction:ltr}
+.card button{width:100%;padding:12px;margin:6px 0;border:0;border-radius:8px;font-size:16px}
+.main{background:var(--blue);color:#fff}.sec{background:#e8eaed}
+#msg{margin-top:8px;font-size:14px;color:#c0392b;word-break:break-word}
 </style>
 </head>
 <body>
-<header>
-  <h1>QRIB | قريب</h1>
-  <p>بيع، شري، ولقى اللي قريب ليك.</p>
-</header>
 
-<div class="card" id="authBox">
-  <h3>تسجيل الدخول</h3>
-  <input id="email" type="email" placeholder="البريد الإلكتروني">
-  <input id="password" type="password" placeholder="كلمة السر (6 أحرف على الأقل)">
-  <button class="main" onclick="login()">دخول</button>
-  <button class="sec" onclick="signup()">إنشاء حساب جديد</button>
-  <div id="msg"></div>
+<div id="home" class="page on">
+  <header><h1>QRIB | قريب</h1><p>بيع، شري، ولقى اللي قريب ليك.</p></header>
+  <div class="search"><input id="q" placeholder="ابحث عن منتج أو قسم..."><button onclick="load()">🔍</button></div>
+  <div class="actions">
+    <button class="a1" onclick="load()">🔎 ابحث عن شيء</button>
+    <button class="a2" onclick="soon()">➕ بيع شيء</button>
+    <button class="a3" onclick="soon()">📍 قريب مني</button>
+  </div>
+  <h2>الأقسام الرئيسية</h2>
+  <div class="cats" id="cats"></div>
+  <h2>أحدث الإعلانات</h2>
+  <div class="grid" id="grid"></div>
 </div>
 
-<div class="card" id="userBox" style="display:none">
-  <h3>مرحبا 👋</h3>
-  <p id="who"></p>
-  <button class="sec" onclick="logout()">تسجيل الخروج</button>
+<div id="account" class="page">
+  <header><h1>حسابي</h1></header>
+  <div class="card" id="authBox">
+    <h3>تسجيل الدخول</h3>
+    <input id="email" type="email" placeholder="البريد الإلكتروني">
+    <input id="password" type="password" placeholder="كلمة السر (6 أحرف على الأقل)">
+    <button class="main" onclick="login()">دخول</button>
+    <button class="sec" onclick="signup()">إنشاء حساب جديد</button>
+    <div id="msg"></div>
+  </div>
+  <div class="card" id="userBox" style="display:none">
+    <h3>مرحبا 👋</h3><p id="who"></p>
+    <button class="sec" onclick="logout()">تسجيل الخروج</button>
+  </div>
 </div>
+
+<nav>
+  <button id="n-home" class="on" onclick="go('home')"><span>🏠</span>الرئيسية</button>
+  <button onclick="soon()"><span>➕</span>إعلان</button>
+  <button onclick="soon()"><span>❤️</span>المفضلة</button>
+  <button id="n-account" onclick="go('account')"><span>👤</span>حسابي</button>
+</nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const db = supabase.createClient(
-    "https://oosyxkyhbryuyllvjuru.supabase.co",
-    "sb_publishable_X7rRZyY_oEfbX6iWZXjM4g_-hhcV_dL"
-  );
-  const msg = document.getElementById("msg");
+const db = supabase.createClient("https://oosyxkyhbryuyllvjuru.supabase.co","sb_publishable_X7rRZyY_oEfbX6iWZXjM4g_-hhcV_dL");
+const CATS=[["📱","الهواتف"],["🚗","السيارات"],["🏠","المنزل"],["👕","الملابس"],["🎮","الألعاب"],["🔧","الأدوات"],["🐾","الحيوانات"],["📦","أخرى"]];
+let cat="";
 
-  function show(session) {
-    document.getElementById("authBox").style.display = session ? "none" : "block";
-    document.getElementById("userBox").style.display = session ? "block" : "none";
-    if (session) document.getElementById("who").textContent = session.user.email;
-  }
+function soon(){alert("قريبا ✨");}
+function go(p){
+  document.querySelectorAll(".page").forEach(e=>e.classList.remove("on"));
+  document.getElementById(p).classList.add("on");
+  document.getElementById("n-home").classList.toggle("on",p==="home");
+  document.getElementById("n-account").classList.toggle("on",p==="account");
+  window.scrollTo(0,0);
+}
+function drawCats(){
+  document.getElementById("cats").innerHTML=CATS.map(c=>
+    '<div class="cat '+(cat===c[1]?"on":"")+'" onclick="pick(\''+c[1]+'\')"><span>'+c[0]+'</span>'+c[1]+'</div>').join("");
+}
+function pick(c){cat=(cat===c?"":c);drawCats();load();}
 
-  async function signup() {
-    msg.style.color = "#c0392b";
-    msg.textContent = "...";
-    const { error } = await db.auth.signUp({
-      email: document.getElementById("email").value.trim(),
-      password: document.getElementById("password").value,
-      options: { emailRedirectTo: location.href }
-    });
-    if (error) { msg.textContent = error.message; return; }
-    msg.style.color = "#0f9d58";
-    msg.textContent = "تم! افتح بريدك واضغط على رابط التأكيد ثم ارجع وسجّل الدخول.";
-  }
+async function load(){
+  const g=document.getElementById("grid");
+  g.innerHTML='<div class="empty">...</div>';
+  let r=db.from("listings").select("id,title,price,city,category,listing_images(image_url,sort_order)").eq("status","active").order("created_at",{ascending:false}).limit(30);
+  if(cat) r=r.eq("category",cat);
+  const t=document.getElementById("q").value.trim();
+  if(t) r=r.ilike("title","%"+t+"%");
+  const {data,error}=await r;
+  if(error){g.innerHTML='<div class="empty">'+error.message+'</div>';return;}
+  if(!data.length){g.innerHTML='<div class="empty">لا توجد إعلانات بعد 🌱</div>';return;}
+  g.innerHTML=data.map(x=>{
+    const im=(x.listing_images||[]).sort((a,b)=>a.sort_order-b.sort_order)[0];
+    return '<div class="item"><div class="img">'+(im?'<img src="'+im.image_url+'" style="width:100%;height:100%;object-fit:cover">':'📦')+'</div><div class="b"><div class="t">'+x.title+'</div><div class="p">'+x.price+' DH</div><div class="c">'+(x.city||"")+'</div></div></div>';
+  }).join("");
+}
 
-  async function login() {
-    msg.style.color = "#c0392b";
-    msg.textContent = "...";
-    const { error } = await db.auth.signInWithPassword({
-      email: document.getElementById("email").value.trim(),
-      password: document.getElementById("password").value
-    });
-    if (error) msg.textContent = error.message;
-  }
+const msg=document.getElementById("msg");
+function show(s){
+  document.getElementById("authBox").style.display=s?"none":"block";
+  document.getElementById("userBox").style.display=s?"block":"none";
+  if(s) document.getElementById("who").textContent=s.user.email;
+}
+async function signup(){
+  msg.style.color="#c0392b";msg.textContent="...";
+  const {error}=await db.auth.signUp({email:email.value.trim(),password:password.value,options:{emailRedirectTo:location.href}});
+  if(error){msg.textContent=error.message;return;}
+  msg.style.color="#16a34a";msg.textContent="تم! افتح بريدك واضغط على رابط التأكيد ثم سجّل الدخول.";
+}
+async function login(){
+  msg.style.color="#c0392b";msg.textContent="...";
+  const {error}=await db.auth.signInWithPassword({email:email.value.trim(),password:password.value});
+  if(error)msg.textContent=error.message;
+}
+async function logout(){await db.auth.signOut();}
+db.auth.getSession().then(({data})=>show(data.session));
+db.auth.onAuthStateChange((_e,s)=>show(s));
 
-  async function logout() { await db.auth.signOut(); }
-
-  db.auth.getSession().then(({ data }) => show(data.session));
-  db.auth.onAuthStateChange((_e, session) => show(session));
+drawCats();load();
 </script>
 </body>
 </html>
