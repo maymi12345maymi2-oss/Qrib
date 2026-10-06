@@ -24,14 +24,14 @@ h2{font-size:17px;margin:18px 14px 8px}
 .cat.on{border-color:var(--blue)}
 .cat span{display:block;font-size:26px;margin-bottom:4px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 14px}
-.item{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px #0001}
+.item{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px #0001;cursor:pointer}
 .item .img{height:110px;background:#e5e9f2;display:flex;align-items:center;justify-content:center;font-size:36px}
 .item .b{padding:8px 10px}
 .item .t{font-size:14px}
 .item .p{color:var(--blue);font-weight:bold;margin-top:2px}
 .item .c{color:var(--mut);font-size:12px;margin-top:2px}
 .empty{grid-column:1/-1;text-align:center;color:var(--mut);padding:30px 10px;background:#fff;border-radius:14px}
-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #e5e7eb;padding-bottom:env(safe-area-inset-bottom)}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #e5e7eb;padding-bottom:env(safe-area-inset-bottom);z-index:100}
 nav button{flex:1;border:0;background:none;padding:10px 0;font-size:12px;color:var(--mut)}
 nav button span{display:block;font-size:22px}
 nav button.on{color:var(--blue);font-weight:bold}
@@ -105,6 +105,17 @@ nav button.on{color:var(--blue);font-weight:bold}
   </div>
 </div>
 
+<!-- صفحة تفاصيل الإعلان -->
+<div id="details" class="page">
+  <header class="small" style="display:flex;align-items:center;justify-content:space-between;">
+    <h1 style="font-size:20px;margin:0;">تفاصيل الإعلان</h1>
+    <button onclick="go('home')" style="background:none;border:0;color:#fff;font-size:15px;cursor:pointer;">⬅ رجوع</button>
+  </header>
+  <div class="card" id="detailsCard" style="text-align:right;">
+    <!-- سيتم تعبئة تفاصيل الإعلان هنا -->
+  </div>
+</div>
+
 <nav>
   <button id="n-home" class="on" onclick="go('home')"><span>🏠</span>الرئيسية</button>
   <button id="n-post" onclick="go('post')"><span>➕</span>إعلان</button>
@@ -124,7 +135,7 @@ function go(p){
   if(p==="post" && !session){alert("سجّل الدخول أولا لنشر إعلان");p="account";}
   document.querySelectorAll(".page").forEach(e=>e.classList.remove("on"));
   document.getElementById(p).classList.add("on");
-  ["home","post","account"].forEach(x=>{const b=document.getElementById("n-"+x);if(b)b.classList.toggle("on",x===p);});
+  ["home","post","account","details"].forEach(x=>{const b=document.getElementById("n-"+x);if(b)b.classList.toggle("on",x===p);});
   window.scrollTo(0,0);
 }
 function drawCats(){
@@ -146,8 +157,38 @@ async function load(){
   if(!data.length){g.innerHTML='<div class="empty">لا توجد إعلانات بعد 🌱</div>';return;}
   g.innerHTML=data.map(x=>{
     const im=(x.listing_images||[]).sort((a,b)=>a.sort_order-b.sort_order)[0];
-    return '<div class="item"><div class="img">'+(im?'<img src="'+esc(im.image_url)+'" style="width:100%;height:100%;object-fit:cover">':'📦')+'</div><div class="b"><div class="t">'+esc(x.title)+'</div><div class="p">'+esc(x.price)+' DH</div><div class="c">'+esc(x.city)+'</div></div></div>';
+    return '<div class="item" onclick="openDetails(\''+x.id+'\')"><div class="img">'+(im?'<img src="'+esc(im.image_url)+'" style="width:100%;height:100%;object-fit:cover">':'📦')+'</div><div class="b"><div class="t">'+esc(x.title)+'</div><div class="p">'+esc(x.price)+' DH</div><div class="c">'+esc(x.city)+'</div></div></div>';
   }).join("");
+}
+
+// دالة فتح تفاصيل الإعلان
+async function openDetails(id){
+  go('details');
+  const card=document.getElementById("detailsCard");
+  card.innerHTML='<div style="text-align:center;padding:20px;">جاري تحميل التفاصيل...</div>';
+  
+  const {data, error}=await db.from("listings").select("*, listing_images(image_url, sort_order), profiles(phone)").eq("id", id).single();
+  
+  if(error){
+    card.innerHTML='<div style="color:red;text-align:center;">خطأ في تحميل الإعلان</div>';
+    return;
+  }
+  
+  const images=(data.listing_images||[]).sort((a,b)=>a.sort_order-b.sort_order);
+  const imgHtml=images.length ? images.map(img=>'<img src="'+esc(img.image_url)+'" style="width:100%;height:220px;object-fit:cover;border-radius:8px;margin-bottom:8px;">').join('') : '<div style="font-size:40px;text-align:center;padding:20px;">📦</div>';
+  const phone=data.profiles && data.profiles.phone ? data.profiles.phone : "";
+
+  card.innerHTML=`
+    ${imgHtml}
+    <h2 style="margin:10px 0;font-size:20px;text-align:right;">${esc(data.title)}</h2>
+    <p style="font-size:22px;color:var(--blue);font-weight:bold;margin:5px 0;text-align:right;">${esc(data.price)} DH</p>
+    <hr style="border:0;border-top:1px solid #eee;margin:12px 0;">
+    <p style="text-align:right;"><strong>القسم:</strong> ${esc(data.category)}</p>
+    <p style="text-align:right;"><strong>الحالة:</strong> ${esc(data.condition)}</p>
+    <p style="text-align:right;"><strong>المنطقة:</strong> ${esc(data.area)} (${esc(data.city)})</p>
+    <p style="text-align:right;"><strong>الوصف:</strong><br><span style="color:var(--mut);">${esc(data.description || 'لا يوجد وصف')}</span></p>
+    ${phone ? '<a href="tel:'+phone+'" style="display:block;background:var(--green);color:#fff;text-align:center;padding:12px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:15px;">📞 اتصل بالبائع ('+phone+')</a>' : ''}
+  `;
 }
 
 function preview(){
