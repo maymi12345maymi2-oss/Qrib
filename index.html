@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QRIB | قريب</title>
+<style>
+  body{margin:0;font-family:Arial,sans-serif;background:#f5f7fa;color:#1a1a1a;text-align:center}
+  header{background:#0f9d58;color:#fff;padding:40px 16px}
+  h1{margin:0;font-size:36px}
+  p{margin:8px 0 0;font-size:18px}
+  #status{margin:24px;padding:16px;background:#fff;border-radius:12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>QRIB | قريب</h1>
+  <p>بيع، شري، ولقى اللي قريب ليك.</p>
+</header>
+<div id="status">جاري الاتصال بقاعدة البيانات...</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL = "https://oosyxkyhbryuyllvjuru.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_X7rRZyY_oEfbX6iWZXjM4g_-hhcV_dL";
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  async function test() {
+    const { count, error } = await db
+      .from("listings")
+      .select("*", { count: "exact", head: true });
+    const box = document.getElementById("status");
+    if (error) {
+      box.textContent = "خطأ: " + error.message;
+    } else {
+      box.textContent = "✅ الاتصال ناجح. عدد الإعلانات: " + count;
+    }
+  }
+  test();
+</script>
+</body>
+</html>
