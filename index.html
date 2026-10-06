@@ -154,19 +154,19 @@ function preview(){
   const files=[...document.getElementById("photos").files].slice(0,5);
   document.getElementById("thumbs").innerHTML=files.map(f=>'<img src="'+URL.createObjectURL(f)+'">').join("");
 }
-function compress(file){
-  return new Promise((ok,fail)=>{
-    const img=new Image();
-    img.onload=()=>{
-      const m=1280,s=Math.min(1,m/Math.max(img.width,img.height));
-      const c=document.createElement("canvas");
-      c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);
-      c.getContext("2d").drawImage(img,0,0,c.width,c.height);
-      c.toBlob(b=>b?ok(b):fail(new Error("image")),"image/jpeg",0.82);
-    };
-    img.onerror=()=>fail(new Error("image"));
-    img.src=URL.createObjectURL(file);
-  });
+async function compress(file){
+  try{
+    const bmp=await createImageBitmap(file);
+    const m=1280,s=Math.min(1,m/Math.max(bmp.width,bmp.height));
+    const c=document.createElement("canvas");
+    c.width=Math.max(1,Math.round(bmp.width*s));
+    c.height=Math.max(1,Math.round(bmp.height*s));
+    c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+    const b=await new Promise(r=>c.toBlob(r,"image/jpeg",0.82));
+    if(b) return {blob:b,type:"image/jpeg",ext:"jpg"};
+  }catch(e){}
+  const t=file.type||"image/jpeg";
+  return {blob:file,type:t,ext:t.indexOf("png")>-1?"png":(t.indexOf("webp")>-1?"webp":"jpg")};
 }
 async function publish(){
   const pm=document.getElementById("pmsg"),btn=document.getElementById("pbtn");
@@ -181,22 +181,26 @@ async function publish(){
   btn.disabled=true;set("جاري النشر...",true);
   try{
     const uid=session.user.id;
+    const lid=crypto.randomUUID();
+    const urls=[];
+    for(let i=0;i<files.length;i++){
+      set("جاري رفع الصورة "+(i+1)+" من "+files.length+"...",true);
+      const f=await compress(files[i]);
+      const path=uid+"/"+lid+"/"+i+"."+f.ext;
+      const up=await db.storage.from("listing-images").upload(path,f.blob,{contentType:f.type});
+      if(up.error) throw up.error;
+      urls.push(db.storage.from("listing-images").getPublicUrl(path).data.publicUrl);
+    }
+    set("جاري حفظ الإعلان...",true);
     await db.from("profiles").update({phone:phone,city:"تطوان"}).eq("id",uid);
     const ins=await db.from("listings").insert({
-      seller_id:uid,title:title,description:pdesc.value.trim(),price:price,
+      id:lid,seller_id:uid,title:title,description:pdesc.value.trim(),price:price,
       category:pcat.value,condition:pcond.value,city:"تطوان",area:parea.value.trim(),status:"active"
-    }).select("id").single();
+    });
     if(ins.error) throw ins.error;
-    const lid=ins.data.id;
-    for(let i=0;i<files.length;i++){
-      const blob=await compress(files[i]);
-      const path=uid+"/"+lid+"/"+i+".jpg";
-      const up=await db.storage.from("listing-images").upload(path,blob,{contentType:"image/jpeg"});
-      if(up.error) throw up.error;
-      const url=db.storage.from("listing-images").getPublicUrl(path).data.publicUrl;
-      const li=await db.from("listing_images").insert({listing_id:lid,image_url:url,sort_order:i});
-      if(li.error) throw li.error;
-    }
+    const rows=urls.map((u,i)=>({listing_id:lid,image_url:u,sort_order:i}));
+    const li=await db.from("listing_images").insert(rows);
+    if(li.error) throw li.error;
     set("✅ تم نشر إعلانك!",true);
     ptitle.value="";pprice.value="";pdesc.value="";parea.value="";photos.value="";thumbs.innerHTML="";
     load();setTimeout(()=>{pm.textContent="";go("home");},1200);
