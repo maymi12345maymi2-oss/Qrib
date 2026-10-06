@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>قريب - Qrib</title>
+  <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
@@ -11,9 +12,9 @@
       --card: #1e1e1e;
       --text: #ffffff;
       --mut: #aaaaaa;
-      --blue: #2f81f3;
-      --green: #238636;
-      --border: #30363d;
+      --blue: #3b82f6;
+      --green: #22c55e;
+      --border: #333333;
     }
     body {
       background: var(--bg);
@@ -22,19 +23,27 @@
       margin: 0;
       padding-bottom: 70px;
     }
+    .page { display: none; padding: 15px; }
+    .page.active { display: block; }
     header {
       background: var(--card);
-      padding: 15px;
+      padding: 12px 15px;
       text-align: center;
       border-bottom: 1px solid var(--border);
-      font-size: 18px;
-      font-weight: bold;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
-    header.small {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 14px 16px;
+    header h1 { margin: 0; font-size: 18px; color: var(--blue); }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
     }
-    .page { display: none; padding: 15px; }
-    .
+    input, select, textarea {
+      width: 100%;
+      background: #2a2a2a;
+      border: 1px solid var(--border);
+      color: var(--
