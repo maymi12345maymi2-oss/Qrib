@@ -1,51 +1,238 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>قريب - Qrib | سوق تطوان</title>
-  <!-- Supabase CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root {
-      --bg: #121212;
-      --card: #1e1e1e;
-      --text: #ffffff;
-      --mut: #aaaaaa;
-      --blue: #3b82f6;
-      --green: #22c55e;
-      --border: #333333;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QRIB | قريب</title>
+<style>
+:root{--blue:#1257d6;--green:#16a34a;--bg:#f4f6fa;--txt:#1a1f2b;--mut:#6b7280}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--txt);padding-bottom:80px}
+header{background:linear-gradient(160deg,#0b3fa8,#1257d6);color:#fff;padding:22px 16px 60px;text-align:center}
+header.small{padding:18px 16px}
+header h1{margin:0;font-size:30px}
+header p{margin:6px 0 0;font-size:15px;opacity:.95}
+.search{margin:-30px 14px 0;background:#fff;border-radius:14px;padding:6px 12px;box-shadow:0 4px 14px #0002;display:flex}
+.search input{flex:1;border:0;outline:0;padding:12px 4px;font-size:16px;background:transparent}
+.search button{border:0;background:var(--blue);color:#fff;border-radius:10px;padding:0 14px;font-size:16px}
+.actions{display:flex;gap:10px;margin:14px}
+.actions button{flex:1;border:0;border-radius:14px;padding:14px 6px;font-size:15px;color:#fff;font-weight:bold}
+.a1{background:var(--blue)}.a2{background:var(--green)}.a3{background:#fff;color:var(--blue)!important;border:1px solid #dbe3f3!important}
+h2{font-size:17px;margin:18px 14px 8px}
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 14px}
+.cat{background:#fff;border-radius:14px;padding:12px 4px;text-align:center;font-size:13px;box-shadow:0 2px 8px #0001;cursor:pointer;border:2px solid transparent}
+.cat.on{border-color:var(--blue)}
+.cat span{display:block;font-size:26px;margin-bottom:4px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 14px}
+.item{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px #0001}
+.item .img{height:110px;background:#e5e9f2;display:flex;align-items:center;justify-content:center;font-size:36px}
+.item .b{padding:8px 10px}
+.item .t{font-size:14px}
+.item .p{color:var(--blue);font-weight:bold;margin-top:2px}
+.item .c{color:var(--mut);font-size:12px;margin-top:2px}
+.empty{grid-column:1/-1;text-align:center;color:var(--mut);padding:30px 10px;background:#fff;border-radius:14px}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #e5e7eb;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;border:0;background:none;padding:10px 0;font-size:12px;color:var(--mut)}
+nav button span{display:block;font-size:22px}
+nav button.on{color:var(--blue);font-weight:bold}
+.page{display:none}.page.on{display:block}
+.card{margin:18px auto;padding:20px;background:#fff;border-radius:14px;max-width:420px;text-align:center}
+.card input,.card select,.card textarea{width:100%;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:8px;font-size:16px;font-family:inherit;background:#fff}
+.card input[type=email],.card input[type=password],.card input[type=tel]{direction:ltr}
+.card textarea{min-height:90px}
+.card label{display:block;text-align:right;font-size:14px;margin-top:8px;color:var(--mut)}
+.card button{width:100%;padding:12px;margin:6px 0;border:0;border-radius:8px;font-size:16px}
+.main{background:var(--blue);color:#fff}.sec{background:#e8eaed}
+#msg,#pmsg{margin-top:8px;font-size:14px;color:#c0392b;word-break:break-word}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.thumbs img{width:64px;height:64px;object-fit:cover;border-radius:8px}
+</style>
+</head>
+<body>
+
+<div id="home" class="page on">
+  <header><h1>QRIB | قريب</h1><p>بيع، شري، ولقى اللي قريب ليك.</p></header>
+  <div class="search"><input id="q" placeholder="ابحث عن منتج أو قسم..."><button onclick="load()">🔍</button></div>
+  <div class="actions">
+    <button class="a1" onclick="load()">🔎 ابحث عن شيء</button>
+    <button class="a2" onclick="go('post')">➕ بيع شيء</button>
+    <button class="a3" onclick="soon()">📍 قريب مني</button>
+  </div>
+  <h2>الأقسام الرئيسية</h2>
+  <div class="cats" id="cats"></div>
+  <h2>أحدث الإعلانات</h2>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div id="post" class="page">
+  <header class="small"><h1>بيع شيء</h1></header>
+  <div class="card">
+    <label>صور المنتج (حتى 5)</label>
+    <input id="photos" type="file" accept="image/*" multiple onchange="preview()">
+    <div class="thumbs" id="thumbs"></div>
+    <label>عنوان الإعلان</label>
+    <input id="ptitle" placeholder="مثال: Samsung Galaxy A55">
+    <label>القسم</label>
+    <select id="pcat"></select>
+    <label>الحالة</label>
+    <select id="pcond"><option>مستعمل</option><option>جديد</option></select>
+    <label>السعر (DH)</label>
+    <input id="pprice" type="number" inputmode="numeric" placeholder="2000">
+    <label>الحي / المنطقة في تطوان</label>
+    <input id="parea" placeholder="مثال: حي الفدان">
+    <label>رقم الهاتف / واتساب</label>
+    <input id="pphone" type="tel" placeholder="06XXXXXXXX">
+    <label>الوصف</label>
+    <textarea id="pdesc" placeholder="اكتب وصفا واضحا للمنتج"></textarea>
+    <button class="main" id="pbtn" onclick="publish()">نشر الإعلان</button>
+    <div id="pmsg"></div>
+  </div>
+</div>
+
+<div id="account" class="page">
+  <header class="small"><h1>حسابي</h1></header>
+  <div class="card" id="authBox">
+    <h3>تسجيل الدخول</h3>
+    <input id="email" type="email" placeholder="البريد الإلكتروني">
+    <input id="password" type="password" placeholder="كلمة السر (6 أحرف على الأقل)">
+    <button class="main" onclick="login()">دخول</button>
+    <button class="sec" onclick="signup()">إنشاء حساب جديد</button>
+    <div id="msg"></div>
+  </div>
+  <div class="card" id="userBox" style="display:none">
+    <h3>مرحبا 👋</h3><p id="who"></p>
+    <button class="sec" onclick="logout()">تسجيل الخروج</button>
+  </div>
+</div>
+
+<nav>
+  <button id="n-home" class="on" onclick="go('home')"><span>🏠</span>الرئيسية</button>
+  <button id="n-post" onclick="go('post')"><span>➕</span>إعلان</button>
+  <button onclick="soon()"><span>❤️</span>المفضلة</button>
+  <button id="n-account" onclick="go('account')"><span>👤</span>حسابي</button>
+</nav>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const db = supabase.createClient("https://oosyxkyhbryuyllvjuru.supabase.co","sb_publishable_X7rRZyY_oEfbX6iWZXjM4g_-hhcV_dL");
+const CATS=[["📱","الهواتف"],["🚗","السيارات"],["🏠","المنزل"],["👕","الملابس"],["🎮","الألعاب"],["🔧","الأدوات"],["🐾","الحيوانات"],["📦","أخرى"]];
+let cat="", session=null;
+
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function soon(){alert("قريبا ✨");}
+function go(p){
+  if(p==="post" && !session){alert("سجّل الدخول أولا لنشر إعلان");p="account";}
+  document.querySelectorAll(".page").forEach(e=>e.classList.remove("on"));
+  document.getElementById(p).classList.add("on");
+  ["home","post","account"].forEach(x=>{const b=document.getElementById("n-"+x);if(b)b.classList.toggle("on",x===p);});
+  window.scrollTo(0,0);
+}
+function drawCats(){
+  document.getElementById("cats").innerHTML=CATS.map(c=>
+    '<div class="cat '+(cat===c[1]?"on":"")+'" onclick="pick(\''+c[1]+'\')"><span>'+c[0]+'</span>'+c[1]+'</div>').join("");
+  document.getElementById("pcat").innerHTML=CATS.map(c=>'<option>'+c[1]+'</option>').join("");
+}
+function pick(c){cat=(cat===c?"":c);drawCats();load();}
+
+async function load(){
+  const g=document.getElementById("grid");
+  g.innerHTML='<div class="empty">...</div>';
+  let r=db.from("listings").select("id,title,price,city,category,listing_images(image_url,sort_order)").eq("status","active").order("created_at",{ascending:false}).limit(30);
+  if(cat) r=r.eq("category",cat);
+  const t=document.getElementById("q").value.trim();
+  if(t) r=r.ilike("title","%"+t+"%");
+  const {data,error}=await r;
+  if(error){g.innerHTML='<div class="empty">'+esc(error.message)+'</div>';return;}
+  if(!data.length){g.innerHTML='<div class="empty">لا توجد إعلانات بعد 🌱</div>';return;}
+  g.innerHTML=data.map(x=>{
+    const im=(x.listing_images||[]).sort((a,b)=>a.sort_order-b.sort_order)[0];
+    return '<div class="item"><div class="img">'+(im?'<img src="'+esc(im.image_url)+'" style="width:100%;height:100%;object-fit:cover">':'📦')+'</div><div class="b"><div class="t">'+esc(x.title)+'</div><div class="p">'+esc(x.price)+' DH</div><div class="c">'+esc(x.city)+'</div></div></div>';
+  }).join("");
+}
+
+function preview(){
+  const files=[...document.getElementById("photos").files].slice(0,5);
+  document.getElementById("thumbs").innerHTML=files.map(f=>'<img src="'+URL.createObjectURL(f)+'">').join("");
+}
+async function compress(file){
+  try{
+    const bmp=await createImageBitmap(file);
+    const m=1280,s=Math.min(1,m/Math.max(bmp.width,bmp.height));
+    const c=document.createElement("canvas");
+    c.width=Math.max(1,Math.round(bmp.width*s));
+    c.height=Math.max(1,Math.round(bmp.height*s));
+    c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+    const b=await new Promise(r=>c.toBlob(r,"image/jpeg",0.82));
+    if(b) return {blob:b,type:"image/jpeg",ext:"jpg"};
+  }catch(e){}
+  const t=file.type||"image/jpeg";
+  return {blob:file,type:t,ext:t.indexOf("png")>-1?"png":(t.indexOf("webp")>-1?"webp":"jpg")};
+}
+async function publish(){
+  const pm=document.getElementById("pmsg"),btn=document.getElementById("pbtn");
+  const set=(t,ok)=>{pm.style.color=ok?"#16a34a":"#c0392b";pm.textContent=t;};
+  if(!session){set("سجّل الدخول أولا");return;}
+  const title=ptitle.value.trim(),price=Number(pprice.value),phone=pphone.value.trim();
+  const files=[...photos.files].slice(0,5);
+  if(!title){set("اكتب عنوان الإعلان");return;}
+  if(!(price>0)){set("اكتب السعر");return;}
+  if(phone.length<8){set("اكتب رقم الهاتف");return;}
+  if(!files.length){set("أضف صورة واحدة على الأقل");return;}
+  btn.disabled=true;set("جاري النشر...",true);
+  try{
+    const uid=session.user.id;
+    const lid=crypto.randomUUID();
+    const urls=[];
+    for(let i=0;i<files.length;i++){
+      set("جاري رفع الصورة "+(i+1)+" من "+files.length+"...",true);
+      const f=await compress(files[i]);
+      const path=uid+"/"+lid+"/"+i+"."+f.ext;
+      const up=await db.storage.from("listing-images").upload(path,f.blob,{contentType:f.type});
+      if(up.error) throw up.error;
+      urls.push(db.storage.from("listing-images").getPublicUrl(path).data.publicUrl);
     }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: Tahoma, sans-serif;
-      margin: 0;
-      padding-bottom: 70px;
-    }
-    .page { display: none; padding: 15px; }
-    .page.active { display: block; }
-    header {
-      background: var(--card);
-      padding: 12px 15px;
-      text-align: center;
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    header h1 { margin: 0; font-size: 18px; color: var(--blue); }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px;
-      margin-bottom: 12px;
-    }
-    input, select, textarea {
-      width: 100%;
-      background: #2a2a2a;
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 10px;
-      border-radius: 6px;
+    set("جاري حفظ الإعلان...",true);
+    await db.from("profiles").update({phone:phone,city:"تطوان"}).eq("id",uid);
+    const ins=await db.from("listings").insert({
+      id:lid,seller_id:uid,title:title,description:pdesc.value.trim(),price:price,
+      category:pcat.value,condition:pcond.value,city:"تطوان",area:parea.value.trim(),status:"active"
+    });
+    if(ins.error) throw ins.error;
+    const rows=urls.map((u,i)=>({listing_id:lid,image_url:u,sort_order:i}));
+    const li=await db.from("listing_images").insert(rows);
+    if(li.error) throw li.error;
+    set("✅ تم نشر إعلانك!",true);
+    ptitle.value="";pprice.value="";pdesc.value="";parea.value="";photos.value="";thumbs.innerHTML="";
+    load();setTimeout(()=>{pm.textContent="";go("home");},1200);
+  }catch(e){
+    set("خطأ: "+(e.message||JSON.stringify(e)));
+  }
+  btn.disabled=false;
+}
+
+const msg=document.getElementById("msg");
+function show(s){
+  session=s;
+  document.getElementById("authBox").style.display=s?"none":"block";
+  document.getElementById("userBox").style.display=s?"block":"none";
+  if(s) document.getElementById("who").textContent=s.user.email;
+}
+async function signup(){
+  msg.style.color="#c0392b";msg.textContent="...";
+  const {error}=await db.auth.signUp({email:email.value.trim(),password:password.value,options:{emailRedirectTo:location.href}});
+  if(error){msg.textContent=error.message;return;}
+  msg.style.color="#16a34a";msg.textContent="تم! افتح بريدك واضغط على رابط التأكيد ثم سجّل الدخول.";
+}
+async function login(){
+  msg.style.color="#c0392b";msg.textContent="...";
+  const {error}=await db.auth.signInWithPassword({email:email.value.trim(),password:password.value});
+  if(error)msg.textContent=error.message;
+}
+async function logout(){await db.auth.signOut();}
+db.auth.getSession().then(({data})=>show(data.session));
+db.auth.onAuthStateChange((_e,s)=>show(s));
+
+drawCats();load();
+</script>
+</body>
+</html>
