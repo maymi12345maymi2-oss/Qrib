@@ -6,10 +6,15 @@
 <title>QRIB | قريب</title>
 <style>
   body{margin:0;font-family:Arial,sans-serif;background:#f5f7fa;color:#1a1a1a;text-align:center}
-  header{background:#0f9d58;color:#fff;padding:40px 16px}
-  h1{margin:0;font-size:36px}
-  p{margin:8px 0 0;font-size:18px}
-  #status{margin:24px;padding:16px;background:#fff;border-radius:12px;word-break:break-all;direction:ltr}
+  header{background:#0f9d58;color:#fff;padding:32px 16px}
+  h1{margin:0;font-size:34px}
+  p{margin:8px 0 0;font-size:17px}
+  .card{margin:20px auto;padding:20px;background:#fff;border-radius:14px;max-width:360px}
+  input{width:100%;box-sizing:border-box;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:8px;font-size:16px;direction:ltr}
+  button{width:100%;padding:12px;margin:6px 0;border:0;border-radius:8px;font-size:16px;cursor:pointer}
+  .main{background:#0f9d58;color:#fff}
+  .sec{background:#e8eaed;color:#1a1a1a}
+  #msg{margin-top:10px;font-size:15px;color:#c0392b;word-break:break-word}
 </style>
 </head>
 <body>
@@ -17,31 +22,63 @@
   <h1>QRIB | قريب</h1>
   <p>بيع، شري، ولقى اللي قريب ليك.</p>
 </header>
-<div id="status">Loading...</div>
+
+<div class="card" id="authBox">
+  <h3>تسجيل الدخول</h3>
+  <input id="email" type="email" placeholder="البريد الإلكتروني">
+  <input id="password" type="password" placeholder="كلمة السر (6 أحرف على الأقل)">
+  <button class="main" onclick="login()">دخول</button>
+  <button class="sec" onclick="signup()">إنشاء حساب جديد</button>
+  <div id="msg"></div>
+</div>
+
+<div class="card" id="userBox" style="display:none">
+  <h3>مرحبا 👋</h3>
+  <p id="who"></p>
+  <button class="sec" onclick="logout()">تسجيل الخروج</button>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const box = document.getElementById("status");
-  try {
-    const SUPABASE_URL = "https://oosyxkyhbryuyllvjuru.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_X7rRZyY_oEfbX6iWZXjM4g_-hhcV_dL";
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  const db = supabase.createClient(
+    "https://oosyxkyhbryuyllvjuru.supabase.co",
+    "sb_publishable_X7rRZyY_oEfbX6iWZXjM4g_-hhcV_dL"
+  );
+  const msg = document.getElementById("msg");
 
-    db.from("listings")
-      .select("id", { count: "exact", head: true })
-      .then(function (res) {
-        if (res.error) {
-          box.textContent = "ERROR: " + JSON.stringify(res.error) + " | status: " + res.status;
-        } else {
-          box.textContent = "OK - listings count: " + res.count;
-        }
-      })
-      .catch(function (e) {
-        box.textContent = "CATCH: " + e;
-      });
-  } catch (e) {
-    box.textContent = "TRY: " + e;
+  function show(session) {
+    document.getElementById("authBox").style.display = session ? "none" : "block";
+    document.getElementById("userBox").style.display = session ? "block" : "none";
+    if (session) document.getElementById("who").textContent = session.user.email;
   }
+
+  async function signup() {
+    msg.style.color = "#c0392b";
+    msg.textContent = "...";
+    const { error } = await db.auth.signUp({
+      email: document.getElementById("email").value.trim(),
+      password: document.getElementById("password").value,
+      options: { emailRedirectTo: location.href }
+    });
+    if (error) { msg.textContent = error.message; return; }
+    msg.style.color = "#0f9d58";
+    msg.textContent = "تم! افتح بريدك واضغط على رابط التأكيد ثم ارجع وسجّل الدخول.";
+  }
+
+  async function login() {
+    msg.style.color = "#c0392b";
+    msg.textContent = "...";
+    const { error } = await db.auth.signInWithPassword({
+      email: document.getElementById("email").value.trim(),
+      password: document.getElementById("password").value
+    });
+    if (error) msg.textContent = error.message;
+  }
+
+  async function logout() { await db.auth.signOut(); }
+
+  db.auth.getSession().then(({ data }) => show(data.session));
+  db.auth.onAuthStateChange((_e, session) => show(session));
 </script>
 </body>
 </html>
