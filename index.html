@@ -24,7 +24,8 @@ h2{font-size:17px;margin:18px 14px 8px}
 .cat.on{border-color:var(--blue)}
 .cat span{display:block;font-size:26px;margin-bottom:4px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 14px}
-.item{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px #0001}
+.item{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px #0001;cursor:pointer;transition:transform 0.2s}
+.item:active{transform:scale(0.98)}
 .item .img{height:110px;background:#e5e9f2;display:flex;align-items:center;justify-content:center;font-size:36px}
 .item .b{padding:8px 10px}
 .item .t{font-size:14px}
@@ -108,7 +109,7 @@ nav button.on{color:var(--blue);font-weight:bold}
 <nav>
   <button id="n-home" class="on" onclick="go('home')"><span>🏠</span>الرئيسية</button>
   <button id="n-post" onclick="go('post')"><span>➕</span>إعلان</button>
-  <button onclick="soon()"><span>❤️</span>المفضلة</button>
+  <button onclick="soon()"><span>❤️️</span>المفضلة</button>
   <button id="n-account" onclick="go('account')"><span>👤</span>حسابي</button>
 </nav>
 
@@ -144,10 +145,17 @@ async function load(){
   const {data,error}=await r;
   if(error){g.innerHTML='<div class="empty">'+esc(error.message)+'</div>';return;}
   if(!data.length){g.innerHTML='<div class="empty">لا توجد إعلانات بعد 🌱</div>';return;}
+  
   g.innerHTML=data.map(x=>{
     const im=(x.listing_images||[]).sort((a,b)=>a.sort_order-b.sort_order)[0];
-    return '<div class="item"><div class="img">'+(im?'<img src="'+esc(im.image_url)+'" style="width:100%;height:100%;object-fit:cover">':'📦')+'</div><div class="b"><div class="t">'+esc(x.title)+'</div><div class="p">'+esc(x.price)+' DH</div><div class="c">'+esc(x.city)+'</div></div></div>';
+    return '<div class="item" onclick="openDetails(\''+x.id+'\')"><div class="img">'+(im?'<img src="'+esc(im.image_url)+'" style="width:100%;height:100%;object-fit:cover">':'📦')+'</div><div class="b"><div class="t">'+esc(x.title)+'</div><div class="p">'+esc(x.price)+' DH</div><div class="c">'+esc(x.city)+'</div></div></div>';
   }).join("");
+}
+
+// دالة جديدة كتخدم فاش كيضغط المستخدم على شي منتج
+function openDetails(id){
+  alert("تم الضغط على الإعلان رقم: " + id);
+  // هنا تقدر من بعد توجه المستخدم لصفحة التفاصيل أو تفتح نافذة تعرض معلومات الإعلان
 }
 
 function preview(){
