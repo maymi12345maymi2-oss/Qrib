@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>QRIB | قريب</title>
 <style>
-:root{--blue:#1257d6;--green:#16a34a;--bg:#f4f6fa;--txt:#1a1f2b;--mut:#6b7280}
+:root{--blue:#1257d6;--green:#16a34a;--red:#dc2626;--bg:#f4f6fa;--txt:#1a1f2b;--mut:#6b7280}
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--txt);padding-bottom:80px}
 header{background:linear-gradient(160deg,#0b3fa8,#1257d6);color:#fff;padding:22px 16px 60px;text-align:center}
@@ -24,14 +24,14 @@ h2{font-size:17px;margin:18px 14px 8px}
 .cat.on{border-color:var(--blue)}
 .cat span{display:block;font-size:26px;margin-bottom:4px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 14px}
-.item{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px #0001;cursor:pointer}
+.item{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px #0001}
 .item .img{height:110px;background:#e5e9f2;display:flex;align-items:center;justify-content:center;font-size:36px}
 .item .b{padding:8px 10px}
 .item .t{font-size:14px}
 .item .p{color:var(--blue);font-weight:bold;margin-top:2px}
 .item .c{color:var(--mut);font-size:12px;margin-top:2px}
 .empty{grid-column:1/-1;text-align:center;color:var(--mut);padding:30px 10px;background:#fff;border-radius:14px}
-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #e5e7eb;padding-bottom:env(safe-area-inset-bottom);z-index:100}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #e5e7eb;padding-bottom:env(safe-area-inset-bottom)}
 nav button{flex:1;border:0;background:none;padding:10px 0;font-size:12px;color:var(--mut)}
 nav button span{display:block;font-size:22px}
 nav button.on{color:var(--blue);font-weight:bold}
@@ -43,9 +43,16 @@ nav button.on{color:var(--blue);font-weight:bold}
 .card label{display:block;text-align:right;font-size:14px;margin-top:8px;color:var(--mut)}
 .card button{width:100%;padding:12px;margin:6px 0;border:0;border-radius:8px;font-size:16px}
 .main{background:var(--blue);color:#fff}.sec{background:#e8eaed}
-#msg,#pmsg{margin-top:8px;font-size:14px;color:#c0392b;word-break:break-word}
+#msg,#pmsg,#mmsg{margin-top:8px;font-size:14px;color:#c0392b;word-break:break-word}
 .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
 .thumbs img{width:64px;height:64px;object-fit:cover;border-radius:8px}
+.mine{display:flex;align-items:center;gap:10px;background:#f8fafc;border-radius:12px;padding:8px;margin:8px 0;text-align:right}
+.mine .im{width:56px;height:56px;border-radius:8px;background:#e5e9f2;display:flex;align-items:center;justify-content:center;font-size:24px;overflow:hidden;flex:none}
+.mine .im img{width:100%;height:100%;object-fit:cover}
+.mine .tx{flex:1;min-width:0}
+.mine .tx b{display:block;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mine .tx span{font-size:13px;color:var(--blue)}
+.mine .del{width:auto!important;margin:0!important;padding:10px 12px!important;background:#fee2e2;color:var(--red);border-radius:10px;font-size:18px}
 </style>
 </head>
 <body>
@@ -99,20 +106,16 @@ nav button.on{color:var(--blue);font-weight:bold}
     <button class="sec" onclick="signup()">إنشاء حساب جديد</button>
     <div id="msg"></div>
   </div>
-  <div class="card" id="userBox" style="display:none">
-    <h3>مرحبا 👋</h3><p id="who"></p>
-    <button class="sec" onclick="logout()">تسجيل الخروج</button>
-  </div>
-</div>
-
-<!-- صفحة تفاصيل الإعلان -->
-<div id="details" class="page">
-  <header class="small" style="display:flex;align-items:center;justify-content:space-between;">
-    <h1 style="font-size:20px;margin:0;">تفاصيل الإعلان</h1>
-    <button onclick="go('home')" style="background:none;border:0;color:#fff;font-size:15px;cursor:pointer;">⬅ رجوع</button>
-  </header>
-  <div class="card" id="detailsCard" style="text-align:right;">
-    <!-- سيتم تعبئة تفاصيل الإعلان هنا -->
+  <div id="userBox" style="display:none">
+    <div class="card">
+      <h3>مرحبا 👋</h3><p id="who"></p>
+      <button class="sec" onclick="logout()">تسجيل الخروج</button>
+    </div>
+    <div class="card">
+      <h3>إعلاناتي</h3>
+      <div id="mine"></div>
+      <div id="mmsg"></div>
+    </div>
   </div>
 </div>
 
@@ -135,7 +138,8 @@ function go(p){
   if(p==="post" && !session){alert("سجّل الدخول أولا لنشر إعلان");p="account";}
   document.querySelectorAll(".page").forEach(e=>e.classList.remove("on"));
   document.getElementById(p).classList.add("on");
-  ["home","post","account","details"].forEach(x=>{const b=document.getElementById("n-"+x);if(b)b.classList.toggle("on",x===p);});
+  ["home","post","account"].forEach(x=>{const b=document.getElementById("n-"+x);if(b)b.classList.toggle("on",x===p);});
+  if(p==="account" && session) loadMine();
   window.scrollTo(0,0);
 }
 function drawCats(){
@@ -157,38 +161,43 @@ async function load(){
   if(!data.length){g.innerHTML='<div class="empty">لا توجد إعلانات بعد 🌱</div>';return;}
   g.innerHTML=data.map(x=>{
     const im=(x.listing_images||[]).sort((a,b)=>a.sort_order-b.sort_order)[0];
-    return '<div class="item" onclick="openDetails(\''+x.id+'\')"><div class="img">'+(im?'<img src="'+esc(im.image_url)+'" style="width:100%;height:100%;object-fit:cover">':'📦')+'</div><div class="b"><div class="t">'+esc(x.title)+'</div><div class="p">'+esc(x.price)+' DH</div><div class="c">'+esc(x.city)+'</div></div></div>';
+    return '<div class="item"><div class="img">'+(im?'<img src="'+esc(im.image_url)+'" style="width:100%;height:100%;object-fit:cover">':'📦')+'</div><div class="b"><div class="t">'+esc(x.title)+'</div><div class="p">'+esc(x.price)+' DH</div><div class="c">'+esc(x.city)+'</div></div></div>';
   }).join("");
 }
 
-// دالة فتح تفاصيل الإعلان
-async function openDetails(id){
-  go('details');
-  const card=document.getElementById("detailsCard");
-  card.innerHTML='<div style="text-align:center;padding:20px;">جاري تحميل التفاصيل...</div>';
-  
-  const {data, error}=await db.from("listings").select("*, listing_images(image_url, sort_order), profiles(phone)").eq("id", id).single();
-  
-  if(error){
-    card.innerHTML='<div style="color:red;text-align:center;">خطأ في تحميل الإعلان</div>';
-    return;
+async function loadMine(){
+  const box=document.getElementById("mine"),mm=document.getElementById("mmsg");
+  mm.textContent="";
+  if(!session){box.innerHTML="";return;}
+  box.innerHTML="...";
+  const {data,error}=await db.from("listings").select("id,title,price,listing_images(image_url,sort_order)").eq("seller_id",session.user.id).order("created_at",{ascending:false});
+  if(error){box.innerHTML="";mm.textContent=error.message;return;}
+  if(!data.length){box.innerHTML='<p style="color:#6b7280">لم تنشر أي إعلان بعد</p>';return;}
+  box.innerHTML=data.map(x=>{
+    const im=(x.listing_images||[]).sort((a,b)=>a.sort_order-b.sort_order)[0];
+    return '<div class="mine"><div class="im">'+(im?'<img src="'+esc(im.image_url)+'">':'📦')+'</div><div class="tx"><b>'+esc(x.title)+'</b><span>'+esc(x.price)+' DH</span></div><button class="del" onclick="delListing(\''+x.id+'\')">🗑️</button></div>';
+  }).join("");
+}
+async function delListing(id){
+  if(!confirm("هل تريد حذف هذا الإعلان نهائيا؟")) return;
+  const mm=document.getElementById("mmsg");
+  mm.style.color="#c0392b";mm.textContent="جاري الحذف...";
+  try{
+    const uid=session.user.id;
+    const folder=uid+"/"+id;
+    const ls=await db.storage.from("listing-images").list(folder);
+    if(ls.data&&ls.data.length){
+      await db.storage.from("listing-images").remove(ls.data.map(f=>folder+"/"+f.name));
+    }
+    await db.from("listing_images").delete().eq("listing_id",id);
+    const d=await db.from("listings").delete().eq("id",id).eq("seller_id",uid).select("id");
+    if(d.error) throw d.error;
+    if(!d.data||!d.data.length) throw new Error("لم يتم الحذف (لا توجد صلاحية)");
+    mm.style.color="#16a34a";mm.textContent="✅ تم الحذف";
+    loadMine();load();
+  }catch(e){
+    mm.style.color="#c0392b";mm.textContent="خطأ: "+(e.message||JSON.stringify(e));
   }
-  
-  const images=(data.listing_images||[]).sort((a,b)=>a.sort_order-b.sort_order);
-  const imgHtml=images.length ? images.map(img=>'<img src="'+esc(img.image_url)+'" style="width:100%;height:220px;object-fit:cover;border-radius:8px;margin-bottom:8px;">').join('') : '<div style="font-size:40px;text-align:center;padding:20px;">📦</div>';
-  const phone=data.profiles && data.profiles.phone ? data.profiles.phone : "";
-
-  card.innerHTML=`
-    ${imgHtml}
-    <h2 style="margin:10px 0;font-size:20px;text-align:right;">${esc(data.title)}</h2>
-    <p style="font-size:22px;color:var(--blue);font-weight:bold;margin:5px 0;text-align:right;">${esc(data.price)} DH</p>
-    <hr style="border:0;border-top:1px solid #eee;margin:12px 0;">
-    <p style="text-align:right;"><strong>القسم:</strong> ${esc(data.category)}</p>
-    <p style="text-align:right;"><strong>الحالة:</strong> ${esc(data.condition)}</p>
-    <p style="text-align:right;"><strong>المنطقة:</strong> ${esc(data.area)} (${esc(data.city)})</p>
-    <p style="text-align:right;"><strong>الوصف:</strong><br><span style="color:var(--mut);">${esc(data.description || 'لا يوجد وصف')}</span></p>
-    ${phone ? '<a href="tel:'+phone+'" style="display:block;background:var(--green);color:#fff;text-align:center;padding:12px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:15px;">📞 اتصل بالبائع ('+phone+')</a>' : ''}
-  `;
 }
 
 function preview(){
@@ -256,7 +265,7 @@ function show(s){
   session=s;
   document.getElementById("authBox").style.display=s?"none":"block";
   document.getElementById("userBox").style.display=s?"block":"none";
-  if(s) document.getElementById("who").textContent=s.user.email;
+  if(s){document.getElementById("who").textContent=s.user.email;loadMine();}
 }
 async function signup(){
   msg.style.color="#c0392b";msg.textContent="...";
@@ -275,18 +284,5 @@ db.auth.onAuthStateChange((_e,s)=>show(s));
 
 drawCats();load();
 </script>
-
-<!-- كود إعلانات أدسترا المدمج -->
-<script type="text/javascript">
-    atOptions = {
-        'key' : '6102183',
-        'format' : 'iframe',
-        'height' : 50,
-        'width' : 320,
-        'params' : {}
-    };
-</script>
-<script type="text/javascript" src="//www.highperformanceformat.com/6102183/invoke.js"></script>
-
 </body>
 </html>
